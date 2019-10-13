@@ -6,29 +6,139 @@ output: html_notebook
 
 For the regular expression exercises, try writing first using regular expressions directly, then try using rverbalexpressions. Provide the code for both. 
 
+```{r}
+library(lubridate)
+library(stringr)
+library(RVerbalExpressions)
+```
+
+
 # Part 1
 
 ## R4DS 16.4.5
 
 Create a vector of dates giving the first day of every month in the current year. 
+```{r}
+ymd("2015-01-01") + months(0:11)
+```
 
 Write a function that given your birthday (as a date), returns how old you are in years.
+```{r}
+age <- function(birthday) {
+  (birthday %--% today()) %/% years(1)
+}
+age(ymd("1997-01-29"))
+```
 
 Write a function that given your birthday, returns the day of the week you were born on. 
+```{r}
+weekday <- function(birthday) {
+  wday(birthday, label = TRUE)
+}
+weekday(ymd("1997-01-29"))
+```
+
 
 ## R4DS 14.3.2.1
 
 Given the corpus of common words in stringr::words, create regular expressions that find all words that have seven letters or more. (Since this list is long, you might want to use the match argument to str_view() to show only the matching or non-matching words.)
+```{r}
+# Regular expressions
+str_view(stringr::words, ".......", match = TRUE)
+```
+
+```{r}
+# Verbal expressions
+wordsrx <- rx() %>% 
+  rx_something() %>% 
+  rx_repeat_previous(7) %>% 
+  grepl(stringr::words)
+stringr::words[wordsrx == TRUE]
+```
+
 
 ## R4DS 14.3.3.1
 
 Use str_detect to find all words that:
 
 That only contain consonants. (Hint: thinking about matching “not”-vowels.)
+```{r}
+# Regular expressions
+str_subset(stringr::words, "^[^aeiou]+$")
+```
+
+```{r}
+# Verbal expressions
+consonantsrx <- rx() %>% 
+  rx_any_of("aeiou") %>% 
+  grepl(stringr::words) 
+stringr::words[consonantsrx == FALSE]
+```
+
 
 Empirically verify the rule “i before e except after c”.
+```{r}
+# Regular expressions
+str_subset(stringr::words, "(cei|[^c]ie)")
+```
+```{r}
+# Regular expressions
+str_subset(stringr::words, "(cie|[^c]ei)")
+```
+
+```{r}
+# Verbal expressions
+rulerx <- rx() %>% 
+  rx_something_but("cei") %>%
+  rx_either_of("cie", "ei") %>%
+  grepl(stringr::words)
+stringr::words[rulerx == TRUE]
+```
+
+
+```{r}
+# Verbal expressions
+rulerx <- rx() %>% 
+  rx_something_but(value = "cie") %>%
+  rx_either_of("cei", "ie") %>%
+  grepl(stringr::words)
+stringr::words[rulerx == TRUE]
+
+rulerx <- rx() %>% 
+  rx_find("cei") %>% 
+  grepl(stringr::words)
+stringr::words[rulerx == TRUE]
+```
 
 Create a regular expression that will match telephone numbers as commonly written in the US. Split this up into multiple expressions as needed.
+```{r}
+x <- c("615-123-4567", "615.123.4567","615-1234-567")
+```
+
+```{r}
+# Regular expressions
+str_view(x, "\\d{3}?[ -\\.]\\d{3}?[ -\\.]\\d{4}")
+```
+
+```{r}
+# Verbal expressions
+telrx <- rx() %>% 
+  rx_start_of_line() %>% 
+  rx_digit() %>% 
+  rx_repeat_previous(3) %>% 
+  rx_any_of("-.") %>% 
+  rx_digit() %>% 
+  rx_repeat_previous(3) %>% 
+  rx_any_of("-.") %>% 
+  rx_digit() %>% 
+  rx_repeat_previous(4) %>% 
+  rx_end_of_line() %>%
+  grepl(x) %>% 
+  print()
+x[telrx]
+```
+
+
 
 # Part 2
 
@@ -39,7 +149,7 @@ Choose a dataset (this can be the same dataset as the last assignment, or a new 
 
 2. Read in and check data
 
-2. Clean up the data. 
+3. Clean up the data. 
 
 *Note: You may request that score for these sections replace your score for the coding portion of Assignment 3.*
 

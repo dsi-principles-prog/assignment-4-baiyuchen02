@@ -1,0 +1,97 @@
+---
+title: "10-import"
+output: html_notebook
+---
+
+*Note: Please replace my score for the coding portion of Assignment 3 with this section*
+
+```{r library_packages}
+library(tidyverse)
+library(assertr)
+library(janitor)
+```
+
+
+## 1. Describe the data and the problem
+
+This is a dataset about HR analytics, which focuses on the causes of employees leaving company. It looks into 9 aspects, including satisfaction level, last evaluation, number of projects worked on, average monthly hours, time spend in company, work accident yes or not, promotion in last 5 years, department, salary.
+
+My goal is to understand what factors contribute most to employee turnover. Therefore, the predictive modeling problem is to predict if a certain employee will leave the company or not.
+
+
+## 2. Read in and check data
+
+Import data and clean its names.
+```{r import_data}
+df <- read_csv("HR_comma_sep.csv") %>% 
+  clean_names()
+```
+
+Check all columns have NA or not.
+```{r check_na}
+for(col in names(df)) {
+  df %>% 
+    assert(not_na, col)
+}
+```
+The test above shows there is no NA value in this dataset. 
+
+Check if the satisfaction level is between 0 and 1 (including).
+```{r check_satisfaction_level}
+df %>% 
+  verify(satisfaction_level > 0 & satisfaction_level <= 1)
+```
+The test above shows that the satisfaction level is within the bound of 0 to 1.
+
+Check if the last evaluation is between 0 and 1 (including).
+```{r check_last_evaluation}
+df %>% 
+  verify(last_evaluation > 0 & last_evaluation <= 1)
+```
+The test above shows that the last evaluation is within the bound of 0 to 1.
+
+Check if work_accident only includes 0 and 1. While 0 means having work accident, 1 means not having working accident.
+```{r check_work_accident}
+df %>% 
+  verify(work_accident == 0 | work_accident == 1)
+```
+The test above shows that Work_accident is either 0 or 1. 
+
+Check if left only includes 0 and 1. While 0 means not left, 1 means left.
+```{r check_left}
+df %>% 
+  verify(left == 0 | left == 1)
+```
+The test above shows that left is either 0 or 1. 
+
+Check if promotion_last_5years only includes 0 and 1. While 0 means having promotion during last 5 years, 1 means having no promotion during last 5 years.
+```{r check_promotion_last_5years}
+df %>% 
+  verify(promotion_last_5years == 0 | promotion_last_5years ==1)
+```
+The test above shows that promotion_last_5years is either 0 or 1. 
+
+
+## 3. Clean up the data.
+
+The column name "sales" does not match the value in this column. Change it to "department".
+```{r change_colname_sales}
+colnames(df)[colnames(df)=="sales"] <- "department"
+```
+
+The column name "average_montly_hours" miss a "h", which is not consistent with other column's name which using the full spelling. Change it to "average_monthly_hours".
+```{r change_average_montly_hours}
+colnames(df)[colnames(df)=="average_montly_hours"] <- "average_monthly_hours"
+```
+
+
+Convert 3 columns (work_accident, left, and promotion_last_5years) to logical from numerical, since their value is either 0 or 1, which simply means true or false.
+```{r change_numerical_to_logical}
+df <- df %>% 
+  mutate(work_accident = ifelse(work_accident == 1, TRUE, FALSE)) %>% 
+  mutate(left =  ifelse(left == 1, TRUE, FALSE)) %>% 
+  mutate(promotion_last_5years = ifelse(promotion_last_5years == 1, TRUE, FALSE))
+```
+
+
+
